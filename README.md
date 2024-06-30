@@ -44,8 +44,21 @@ pub fn main() {
 
 ```
 
+
+
 Further documentation can be found at <https://hexdocs.pm/surreal_gleam>.
 
+## TODO
+```sh
+|> Finish mapping Surreal Types
+|> Finish Table generating code
+|> generate {{Model}}.gleam for all tables
+|> generate decoders for all tables
+|> create basic query DSL
+|> create advanced query DSL
+|> back_end jobs that run on your database written in gleam?
+|> so much more...
+```
 ## Development
 
 ```sh
