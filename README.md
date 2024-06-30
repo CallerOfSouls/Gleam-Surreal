@@ -15,7 +15,7 @@ import surreal_gleam/types
 pub fn main() {
   let table =
     []
-    |> sg_engine.add_field("FavoriteFoods", types.Array(types.Int))
+    |> sg_engine.add_field("FavoriteNumbers", types.Array(types.Int))
     |> sg_engine.add_field("IsVicious", types.Boolean)
     |> sg_engine.add_default_field(
       "AlwaysDefaultsToOne",
@@ -29,16 +29,16 @@ pub fn main() {
   let create_database = sg_engine.create_database("Test")
   let database = sg_engine.use_database("Test")
 
-  let transaction =
-    list.append([create_namespace, namespace, create_database, database], table)
-  io.debug(transaction)
-  sg_engine.execute_transaction(transaction)
-  |> list.each(fn(x) {
+  let transaction = [create_namespace, namespace, create_database, database]
+    |> list.append(table)
+    |> sg_engine.execute_transaction()
+    |> list.each(fn(x) {
     case x {
       Ok(x) -> io.println(x)
       _ -> io.print("")
     }
   })
+
 }
 
 
