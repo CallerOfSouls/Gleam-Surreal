@@ -11,13 +11,13 @@ pub type Geometry {
 pub type FieldType {
   Array(FieldType)
   Boolean
-  RecordID
   None
   Null
   Int
   Float
+  Decimal
   String
-  Datetime
+  DateTime
   Object(List(FieldType))
 }
 
@@ -38,5 +38,5 @@ pub type TableEntity {
   Table(table_name: String, entity_definition: Entity)
 }
 
-pub type EmittedEntity =
+pub type EmittedLines =
   List(Result(String, String))
