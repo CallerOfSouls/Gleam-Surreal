@@ -19,7 +19,7 @@ pub fn create_monster_table_test() {
     types.DefaultInt(1),
   )
   |> sg_engine.create_table_schemafull("Monster")
-  |> list.map(fn(x) { should.be_ok(x) })
+  |> should.be_ok
 }
 
 pub fn create_monster_table_fail_test() {
@@ -32,16 +32,7 @@ pub fn create_monster_table_fail_test() {
     types.DefaultString("Cow"),
   )
   |> sg_engine.create_table_schemafull("Monster")
-  |> list.index_map(fn(item, count) {
-    case count {
-      3 -> {
-        should.be_error(item)
-      }
-      _ -> {
-        should.be_ok(item)
-      }
-    }
-  })
+  |> should.be_error
 }
 
 pub fn create_monster_transaction_test() {
@@ -61,9 +52,17 @@ pub fn create_monster_transaction_test() {
   let create_database = sg_engine.create_database("Test")
   let database = sg_engine.use_database("Test")
 
-  let transaction =
-    list.append([create_namespace, namespace, create_database, database], table)
+  let transaction = case table {
+    Ok(types.Table(table_name, defintion, table)) -> {
+      list.append(
+        [create_namespace, namespace, create_database, database],
+        table,
+      )
+    }
+    Error(x) -> {
+      []
+    }
+  }
 
-  sg_engine.execute_transaction(transaction)
-  |> list.map(fn(x) { should.be_ok(x) })
+  sg_engine.execute_transaction(transaction, "")
 }

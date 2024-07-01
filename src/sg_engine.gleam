@@ -30,6 +30,10 @@ fn with_header(request: request.Request(String), key: String, value: String) {
   // Send the HTTP request to the server
 }
 
+pub fn table_exec() {
+  todo
+}
+
 fn execute_request(
   request: request.Request(String),
 ) -> Result(response.Response(String), hackney.Error) {
@@ -96,7 +100,8 @@ pub fn exec(lines: EmittedLines) {
 
 pub fn execute_transaction(
   statements: List(Result(String, String)),
-) -> List(Result(String, String)) {
+  token: String,
+) -> Result(String, String) {
   let generated_lines =
     [Ok("BEGIN TRANSACTION;")]
     |> list.append(statements)
@@ -126,6 +131,41 @@ pub fn execute_transaction(
           _ -> Ok("")
         }
       })
+    }
+  }
+
+  let error_msg = "Failed to Sign In!"
+  let body =
+    list.fold(statements, "", fn(a, b) {
+      case b {
+        Ok(x) -> a <> x
+        _ -> ""
+      }
+    })
+
+  io.debug(body)
+
+  let request =
+    build_request("http://localhost:8000/", "sql", http.Post)
+    |> request.prepend_header("Accept", "application/json")
+    |> with_token(token)
+    |> request.set_body(body)
+
+  let response = execute_request(request)
+
+  case response {
+    Ok(resp) -> {
+      case resp.status {
+        200 -> {
+          Ok(resp.body)
+        }
+        _ -> {
+          Error(error_msg)
+        }
+      }
+    }
+    Error(_) -> {
+      Error(error_msg)
     }
   }
 }
@@ -174,31 +214,58 @@ pub fn use_database(name: String) -> Result(String, String) {
 pub fn create_table_schemafull(
   entity_definition: Entity,
   name: String,
-) -> List(Result(String, String)) {
+) -> Result(types.TableEntity, List(Result(String, String))) {
   //does a table creation
-
-  emit_fields(
-    entity_definition
-      |> list.append([
-        #("", None, Ok("DEFINE TABLE IF NOT EXISTS " <> name <> " schemafull;")),
-      ]),
-    name,
-  )
+  let res =
+    emit_fields(
+      entity_definition
+        |> list.append([
+          #(
+            "",
+            None,
+            Ok("DEFINE TABLE IF NOT EXISTS " <> name <> " schemafull;"),
+          ),
+        ]),
+      name,
+    )
+  case res |> list.any(result.is_error) {
+    True -> Error(res)
+    False ->
+      Ok(types.Table(
+        table_name: name,
+        definition: entity_definition,
+        code_gen: res,
+      ))
+  }
 }
 
 pub fn create_table_schemaless(
   entity_definition: Entity,
   name: String,
-) -> List(Result(String, String)) {
+) -> Result(types.TableEntity, List(Result(String, String))) {
   //does a table creation
 
-  emit_fields(
-    entity_definition
-      |> list.append([
-        #("", None, Ok("DEFINE TABLE IF NOT EXISTS " <> name <> " schemaless;")),
-      ]),
-    name,
-  )
+  let res =
+    emit_fields(
+      entity_definition
+        |> list.append([
+          #(
+            "",
+            None,
+            Ok("DEFINE TABLE IF NOT EXISTS " <> name <> " schemaless;"),
+          ),
+        ]),
+      name,
+    )
+  case res |> list.any(result.is_error) {
+    True -> Error(res)
+    False ->
+      Ok(types.Table(
+        table_name: name,
+        definition: entity_definition,
+        code_gen: res,
+      ))
+  }
 }
 
 pub fn emit_fields(x: Entity, table: String) -> types.EmittedLines {

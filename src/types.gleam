@@ -35,7 +35,7 @@ pub type Entity =
   List(Field)
 
 pub type TableEntity {
-  Table(table_name: String, entity_definition: Entity)
+  Table(table_name: String, definition: Entity, code_gen: EmittedLines)
 }
 
 pub type EmittedLines =
