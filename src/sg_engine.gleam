@@ -1,9 +1,87 @@
+import gleam/hackney
+import gleam/http
+import gleam/http/request
+import gleam/http/response.{Response}
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/result
+import gleam/string
+
 import types.{
   type DefaultFieldType, type EmittedLines, type Entity, Array, Boolean,
   DateTime, Decimal, Float, Int, None, String,
+}
+
+fn build_request(base: String, endpoint: String, method: http.Method) {
+  // Prepare a HTTP request record
+  let assert Ok(request) = request.to(base <> endpoint)
+
+  request.set_method(request, method)
+}
+
+fn with_token(request: request.Request(String), token: String) {
+  request |> request.prepend_header("Authorization", "Bearer " <> token)
+}
+
+fn with_header(request: request.Request(String), key: String, value: String) {
+  // Prepare a HTTP request record
+  request |> request.prepend_header(key, value)
+  // Send the HTTP request to the server
+}
+
+fn execute_request(
+  request: request.Request(String),
+) -> Result(response.Response(String), hackney.Error) {
+  request |> hackney.send
+}
+
+pub fn root_sign_in(
+  username: String,
+  password: String,
+) -> Result(String, String) {
+  let error_msg = "Failed to Sign In!"
+  let request =
+    build_request("http://localhost:8000/", "signin", http.Post)
+    |> request.prepend_header("Accept", "application/json")
+    |> request.set_body(
+      "{ \"user\":\"" <> username <> "\", \"pass\":\"" <> password <> "\"}",
+    )
+
+  let response = execute_request(request)
+
+  case response {
+    Ok(resp) -> {
+      case resp.status {
+        200 -> {
+          let token_json =
+            resp.body
+            |> string.replace("}", "")
+            |> string.replace("\"", "")
+            |> string.split(",")
+            |> list.filter(fn(x) { x |> string.contains("token") })
+
+          case token_json |> list.first {
+            Ok(x) -> {
+              case string.split(x, ":") |> list.last {
+                Ok(x) -> Ok(x)
+                Error(_) -> Error(error_msg)
+              }
+            }
+            _ -> {
+              Error(error_msg)
+            }
+          }
+        }
+        _ -> {
+          Error(error_msg)
+        }
+      }
+    }
+    Error(_) -> {
+      Error(error_msg)
+    }
+  }
 }
 
 pub fn exec(lines: EmittedLines) {

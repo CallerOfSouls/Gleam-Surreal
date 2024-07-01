@@ -4,6 +4,7 @@ import sg_engine
 import types
 
 pub fn main() {
+  let _ = io.debug(sg_engine.root_sign_in("Me", "113"))
   let table =
     []
     |> sg_engine.add_field("FavoriteFoods", types.Array(types.Int))
@@ -22,7 +23,7 @@ pub fn main() {
 
   let transaction =
     list.append([create_namespace, namespace, create_database, database], table)
-  io.debug(transaction)
+
   sg_engine.execute_transaction(transaction)
   |> list.each(fn(x) {
     case x {

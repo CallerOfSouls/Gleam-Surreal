@@ -13,6 +13,7 @@ import surreal_gleam/sg_engine
 import surreal_gleam/types
 
 pub fn main() {
+  let _ = sg_engine.root_sign_in("Me", "123")
   let table =
     []
     |> sg_engine.add_field("FavoriteNumbers", types.Array(types.Int))

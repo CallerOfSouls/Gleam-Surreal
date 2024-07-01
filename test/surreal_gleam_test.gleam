@@ -63,7 +63,7 @@ pub fn create_monster_transaction_test() {
 
   let transaction =
     list.append([create_namespace, namespace, create_database, database], table)
-  io.debug(transaction)
+
   sg_engine.execute_transaction(transaction)
   |> list.map(fn(x) { should.be_ok(x) })
 }
