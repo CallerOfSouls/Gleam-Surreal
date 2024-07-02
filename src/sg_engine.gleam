@@ -9,8 +9,9 @@ import gleam/result
 import gleam/string
 
 import types.{
-  type DefaultFieldType, type EmittedLines, type Entity, Array, Boolean,
-  DateTime, Decimal, Float, Int, None, String,
+  type DefaultFieldType, type EmittedLines, type Entity, type GeometryType,
+  Array, Boolean, DateTime, Decimal, Float, Geometry, Int, None, Object, Option,
+  Record, String,
 }
 
 fn build_request(base: String, endpoint: String, method: http.Method) {
@@ -268,6 +269,40 @@ pub fn create_table_schemaless(
   }
 }
 
+pub fn find_field(x: types.FieldType) -> String {
+  case x {
+    Int -> "int"
+    Float -> "float"
+    Decimal -> "decimal"
+    String -> "string"
+    Boolean -> "bool"
+    DateTime -> "datetime"
+    Record -> "record"
+    Object -> "object"
+    Option(x) -> {
+      find_field(x)
+    }
+    Array(x) -> {
+      "array<" <> find_field(x) <> ">"
+    }
+    Geometry(shape) -> {
+      "geometry"
+      <> case shape {
+        types.Feature -> "<feature>"
+        types.Point -> "<point>"
+        types.MultiPoint -> "<multipoint>"
+        types.LineString -> "<LineString>"
+        types.MultiLine -> "<multiline>"
+        types.Polygon -> "<polygon>"
+        types.MultiPolygon -> "<multipolygon>"
+        types.Collection -> "<collection"
+      }
+    }
+    types.None -> "NONE"
+    _ -> ""
+  }
+}
+
 pub fn emit_fields(x: Entity, table: String) -> types.EmittedLines {
   x
   |> list.reverse
@@ -277,27 +312,7 @@ pub fn emit_fields(x: Entity, table: String) -> types.EmittedLines {
         Ok(x)
       }
       #(name, field_type, Ok(default)) -> {
-        let ft = case field_type {
-          Array(x) -> {
-            let data_type = case x {
-              Int -> "int"
-              Float -> "float"
-              Decimal -> "decimal"
-              String -> "string"
-              Boolean -> "bool"
-              DateTime -> "datetime"
-              _ -> ""
-            }
-            "array<" <> data_type <> ">"
-          }
-          Int -> "int"
-          Float -> "float"
-          Decimal -> "decimal"
-          String -> "string"
-          Boolean -> "bool"
-          DateTime -> "datetime"
-          _ -> io.debug(name <> " failed")
-        }
+        let ft = find_field(field_type)
         Ok(
           "DEFINE FIELD "
           <> name

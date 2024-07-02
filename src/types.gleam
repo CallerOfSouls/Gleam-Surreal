@@ -1,11 +1,12 @@
-pub type Geometry {
+pub type GeometryType {
+  Feature
   Point
   LineString
   Polygon
   MultiPoint
-  MultiLineString
+  MultiLine
   MultiPolygon
-  GeometryCollection
+  Collection
 }
 
 pub type FieldType {
@@ -18,7 +19,10 @@ pub type FieldType {
   Decimal
   String
   DateTime
-  Object(List(FieldType))
+  Record
+  Geometry(GeometryType)
+  Object
+  Option(FieldType)
 }
 
 pub type DefaultFieldType {
