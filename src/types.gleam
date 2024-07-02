@@ -11,6 +11,7 @@ pub type GeometryType {
 
 pub type FieldType {
   Array(FieldType)
+  Set(FieldType)
   Boolean
   None
   Null

@@ -279,6 +279,7 @@ pub fn find_field(x: types.FieldType) -> String {
     DateTime -> "datetime"
     Record -> "record"
     Object -> "object"
+    types.Set(x) -> "Set<" <> find_field(x) <> ">"
     Option(x) -> {
       find_field(x)
     }
