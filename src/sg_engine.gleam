@@ -31,10 +31,6 @@ fn with_header(request: request.Request(String), key: String, value: String) {
   // Send the HTTP request to the server
 }
 
-pub fn table_exec() {
-  todo
-}
-
 fn execute_request(
   request: request.Request(String),
 ) -> Result(response.Response(String), hackney.Error) {
